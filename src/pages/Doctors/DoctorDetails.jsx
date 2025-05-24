@@ -3,7 +3,7 @@ import starIcon from "../../assets/images/Star.png";
 import DoctorAbout from "./DoctorAbout";
 import Feedback from "./Feedback";
 import Sidepanel from "./Sidepanel";
-import { doctor_URL } from "../../config";
+import { doctor_URL, User_URL, BASE_URL } from "../../config";
 import Loader from "../../Components/Loader/Loading";
 import Error from "../../Components/Error/Error";
 import { useParams } from "react-router-dom";
@@ -21,11 +21,11 @@ const useFetchDoctorAndReviews = (doctorId) => {
         if (!doctorRes.ok) throw new Error("Failed to fetch doctor data");
         const doctorData = await doctorRes.json();
 
-        const reviewsRes = await fetch(`http://localhost:3000/reviews`);
+        const reviewsRes = await fetch(`${BASE_URL}/reviews`);
         if (!reviewsRes.ok) throw new Error("Failed to fetch reviews");
         const reviewsData = await reviewsRes.json();
 
-        const usersRes = await fetch(`http://localhost:3000/users`);
+        const usersRes = await fetch(`${User_URL}`);
         if (!usersRes.ok) throw new Error("Failed to fetch users");
         const usersData = await usersRes.json();
 

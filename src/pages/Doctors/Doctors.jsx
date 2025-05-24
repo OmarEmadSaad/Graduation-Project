@@ -116,14 +116,28 @@ const Doctors = () => {
   }, [query, doctors, reviews]);
 
   const handleBooking = (doctorId) => {
-    const role = localStorage.getItem("role");
-    if (role === "patient") {
+    try {
+      const role = localStorage.getItem("role");
+
+      if (!role) {
+        toast.error("No user role found. Please sign in as a patient.");
+        return;
+      }
+
+      if (role !== "patient") {
+        toast.error(
+          "Sorry, access denied. Booking is available only for patients 😔."
+        );
+        toast.warn("Please sign up as a patient.");
+        return;
+      }
+
       navigate(`/doctors/${doctorId}`);
-    } else {
+    } catch (error) {
+      console.error("Navigation error:", error);
       toast.error(
-        "Sorry Access denied. Booking is available only for patients😔."
+        "An error occurred while trying to navigate to the booking page."
       );
-      toast.warn("Please Sign Up as A Patient.");
     }
   };
 
@@ -190,6 +204,7 @@ const Doctors = () => {
                           <button
                             className="btn btn-primary"
                             onClick={() => handleBooking(doctor.id)}
+                            onTouchEnd={() => handleBooking(doctor.id)} // دعم أحداث اللمس
                           >
                             Book Now
                           </button>
