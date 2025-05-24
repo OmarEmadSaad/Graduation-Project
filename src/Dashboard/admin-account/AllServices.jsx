@@ -1,0 +1,191 @@
+import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import Swal from "sweetalert2";
+import { service_URL, token } from "../../config";
+
+const AllServices = () => {
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const fetchServices = async () => {
+      try {
+        const response = await axios.get(service_URL, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        if (response.status >= 300 && response.status < 400) {
+          console.warn("Redirect detected in GET /services:", response.status);
+          throw new Error("Unexpected redirect from server");
+        }
+        setServices(response.data);
+      } catch (error) {
+        console.error("Error fetching services:", error);
+        Swal.fire({
+          title: "Error!",
+          text:
+            "Failed to fetch services: " + (error.message || "Unknown error"),
+          icon: "error",
+          confirmButtonColor: "#3085d6",
+          confirmButtonText: "OK",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (!token) {
+      Swal.fire({
+        title: "Error!",
+        text: "Please log in to view services.",
+        icon: "error",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+      });
+      navigate("/login");
+      return;
+    }
+    fetchServices();
+  }, [navigate]);
+
+  // Handle service deletion
+  const handleDelete = async (event, id, name) => {
+    event.preventDefault();
+
+    const result = await Swal.fire({
+      title: "Delete Confirmation",
+      text: `Are you sure you want to delete the service "${name}"?`,
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "Cancel",
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+    });
+
+    if (!result.isConfirmed) return;
+
+    try {
+      const response = await axios.delete(`${service_URL}/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (response.status >= 300 && response.status < 400) {
+        console.warn("Redirect detected in DELETE request:", response.status);
+        throw new Error("Unexpected redirect from server");
+      }
+
+      setServices((prev) => prev.filter((service) => service.id !== id));
+      Swal.fire({
+        title: "Deleted!",
+        text: `Service "${name}" has been deleted successfully.`,
+        icon: "success",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (error) {
+      console.error("Delete error:", error);
+      Swal.fire({
+        title: "Error!",
+        text: `Failed to delete service "${name}": ${error.message}`,
+        icon: "error",
+        confirmButtonColor: "#3085d6",
+        confirmButtonText: "OK",
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="text-xl text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="p-6">
+      <h1 className="text-3xl font-bold mb-4 text-blue-400">
+        Services Management
+      </h1>
+      <div className="mt-2 mb-2 text-center">
+        <button
+          onClick={() => navigate("/services/add")}
+          className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded hover:cursor-pointer mx-1"
+        >
+          Add Services
+        </button>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="min-w-full bg-white border border-gray-200">
+          <thead>
+            <tr className="bg-gray-100 text-right">
+              <th className="py-2 px-4 border-b">ID</th>
+              <th className="py-2 px-4 border-b text-center">Image</th>
+              <th className="py-2 px-4 border-b">Service Name</th>
+              <th className="py-2 px-4 border-b">Description</th>
+              <th className="py-2 px-4 border-b">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {services.length === 0 ? (
+              <tr>
+                <td colSpan="5" className="text-center py-4 text-gray-500">
+                  No services available.
+                </td>
+              </tr>
+            ) : (
+              services.map((service) => (
+                <tr key={service.id} className="hover:bg-gray-50">
+                  <td className="py-2 px-4 border-b text-right">
+                    {service.id}
+                  </td>
+                  <td className="py-2 px-4 border-b">
+                    <img
+                      src={service.image}
+                      alt={service.name}
+                      className="w-12 h-12 rounded-full object-cover mx-auto"
+                    />
+                  </td>
+                  <td className="py-2 px-4 border-b text-right">
+                    {service.name}
+                  </td>
+                  <td className="py-2 px-4 border-b text-right">
+                    {service.desc?.substring(0, 20) +
+                      (service.desc?.length > 20 ? "..." : "")}
+                  </td>
+                  <td className="py-2 px-4 border-b text-right">
+                    <button
+                      onClick={(e) => handleDelete(e, service.id, service.name)}
+                      className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded hover:cursor-pointer mx-1"
+                    >
+                      Delete
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+
+                        navigate(`/services/${service.id}`);
+                      }}
+                      className="text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded hover:cursor-pointer mx-1"
+                    >
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+export default AllServices;
