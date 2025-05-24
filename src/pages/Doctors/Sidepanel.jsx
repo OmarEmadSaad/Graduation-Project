@@ -271,8 +271,6 @@ const Sidepanel = ({
         },
       };
 
-      console.log("Sending newAppointment:", newAppointment);
-
       const res = await fetch(`${BASE_URL}/appointments`, {
         method: "POST",
         headers: {

@@ -12,8 +12,29 @@ import { FaStar, FaStarHalfAlt, FaRegStar } from "react-icons/fa";
 const Doctors = () => {
   const [query, setQuery] = useState("");
   const [filteredDoctors, setFilteredDoctors] = useState([]);
-  const { data: doctors, loading, error } = UseFetchDate(`${BASE_URL}/doctors`);
+  const {
+    data: doctors,
+    loading: doctorsLoading,
+    error: doctorsError,
+  } = UseFetchDate(`${BASE_URL}/doctors`);
+  const {
+    data: reviews,
+    loading: reviewsLoading,
+    error: reviewsError,
+  } = UseFetchDate(`${BASE_URL}/reviews`);
   const navigate = useNavigate();
+
+  const calculateAvgRating = (doctorId, reviews) => {
+    const doctorReviews = reviews.filter(
+      (review) => review.doctorId === doctorId
+    );
+    if (doctorReviews.length === 0) return null;
+    const totalRating = doctorReviews.reduce(
+      (sum, review) => sum + review.rating,
+      0
+    );
+    return totalRating / doctorReviews.length;
+  };
 
   const renderStars = (rating) => {
     const stars = [];
@@ -56,23 +77,43 @@ const Doctors = () => {
   };
 
   useEffect(() => {
-    if (doctors && doctors.length > 0) {
+    if (doctors && doctors.length > 0 && reviews) {
       const trimmedQuery = query.trim().toLowerCase();
       let filtered;
 
+      const enhancedDoctors = doctors.map((doctor) => {
+        const avgRating = calculateAvgRating(doctor.id, reviews);
+        const totalRating = reviews.filter(
+          (review) => review.doctorId === doctor.id
+        ).length;
+        return {
+          ...doctor,
+          avgRating: avgRating !== null ? avgRating : doctor.avgRating,
+          totalRating: totalRating || 0,
+        };
+      });
+
       if (trimmedQuery) {
-        filtered = doctors.filter((doctor) =>
+        filtered = enhancedDoctors.filter((doctor) =>
           doctor.specialization.toLowerCase().includes(trimmedQuery)
         );
       } else {
-        filtered = doctors.filter((doctor) => doctor.avgRating > 5.5);
+        filtered = enhancedDoctors.filter(
+          (doctor) => doctor.avgRating && doctor.avgRating >= 3.5
+        );
       }
+
+      filtered.sort((a, b) => {
+        const ratingA = a.avgRating || 0;
+        const ratingB = b.avgRating || 0;
+        return ratingB - ratingA;
+      });
 
       setFilteredDoctors(filtered);
     } else {
       setFilteredDoctors([]);
     }
-  }, [query, doctors]);
+  }, [query, doctors, reviews]);
 
   const handleBooking = (doctorId) => {
     const role = localStorage.getItem("role");
@@ -111,55 +152,60 @@ const Doctors = () => {
 
       <section>
         <div className="container">
-          {loading && <Loader />}
-          {error && <Error errMessage={error} />}
-          {!loading && !error && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 lg:gap-[30px] justify-items-center">
-              {filteredDoctors.length > 0 ? (
-                filteredDoctors.map((doctor) => (
-                  <div
-                    key={doctor.id}
-                    className="card bg-base-100 w-96 shadow-sm"
-                  >
-                    <figure className="px-10 pt-10">
-                      <img
-                        src={
-                          doctor.photo ||
-                          "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"
-                        }
-                        alt={doctor.name}
-                        className="rounded-xl w-full h-[40vh] object-cover"
-                      />
-                    </figure>
-                    <div className="card-body items-center text-center">
-                      <h2 className="card-title">{doctor.name}</h2>
-                      <p>{doctor.specialization}</p>
-                      <div className="flex items-center gap-1">
-                        {renderStars(doctor.avgRating)}
-                        <span className="text-[14px] text-textColor">
-                          ({doctor.totalRating || 0})
-                        </span>
-                      </div>
-                      <div className="card-actions">
-                        <button
-                          className="btn btn-primary"
-                          onClick={() => handleBooking(doctor.id)}
-                        >
-                          Book Now
-                        </button>
+          {(doctorsLoading || reviewsLoading) && <Loader />}
+          {(doctorsError || reviewsError) && (
+            <Error errMessage={doctorsError || reviewsError} />
+          )}
+          {!doctorsLoading &&
+            !reviewsLoading &&
+            !doctorsError &&
+            !reviewsError && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5 lg:gap-[30px] justify-items-center">
+                {filteredDoctors.length > 0 ? (
+                  filteredDoctors.map((doctor) => (
+                    <div
+                      key={doctor.id}
+                      className="card bg-base-100 w-96 shadow-sm"
+                    >
+                      <figure className="px-10 pt-10">
+                        <img
+                          src={
+                            doctor.photo ||
+                            "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"
+                          }
+                          alt={doctor.name}
+                          className="rounded-xl w-full h-[40vh] object-cover"
+                        />
+                      </figure>
+                      <div className="card-body items-center text-center">
+                        <h2 className="card-title">{doctor.name}</h2>
+                        <p>{doctor.specialization}</p>
+                        <div className="flex items-center gap-1">
+                          {renderStars(doctor.avgRating)}
+                          <span className="text-[14px] text-textColor">
+                            ({doctor.totalRating || 0})
+                          </span>
+                        </div>
+                        <div className="card-actions">
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => handleBooking(doctor.id)}
+                          >
+                            Book Now
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-center text-textColor">
-                  {query
-                    ? "No doctors found for this specialization."
-                    : "No doctors found with rating above 5.5."}
-                </p>
-              )}
-            </div>
-          )}
+                  ))
+                ) : (
+                  <p className="text-center text-textColor">
+                    {query
+                      ? "No doctors found for this specialization."
+                      : "No doctors found with rating 3.5 or higher."}
+                  </p>
+                )}
+              </div>
+            )}
         </div>
       </section>
 
