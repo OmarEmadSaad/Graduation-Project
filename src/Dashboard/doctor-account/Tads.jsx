@@ -10,11 +10,6 @@ const Tads = ({ tab, setTab }) => {
   const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-  // const handleLogout = () => {
-  //   dispatch({ type: "LOGOUT" });
-  //   navigate("/");
-  // };
-
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
@@ -76,18 +71,6 @@ const Tads = ({ tab, setTab }) => {
         >
           Profile
         </button>
-
-        {/* <div className="mt-[100px] w-full">
-          <button
-            onClick={() => {
-              handleLogout();
-              setIsMenuOpen(false);
-            }}
-            className="w-full btn text-[16px] leading-7 rounded-md bg-[#181A1E] p-3 text-white"
-          >
-            Logout
-          </button>
-        </div> */}
       </div>
     </div>
   );

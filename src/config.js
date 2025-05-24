@@ -1,6 +1,8 @@
 export const token = localStorage.getItem("token");
-export const BASE_URL = "http://localhost:3000";
-export const User_URL = "http://localhost:3000/users";
-export const doctor_URL = "http://localhost:3000/doctors";
-export const admin_URL = "http://localhost:3000/admin";
-export const service_URL = "http://localhost:3000/services";
+export const BASE_URL = "https://rhetorical-periwinkle-puck.glitch.me/";
+export const User_URL = "https://rhetorical-periwinkle-puck.glitch.me/users";
+export const doctor_URL =
+  "https://rhetorical-periwinkle-puck.glitch.me/doctors";
+export const admin_URL = "https://rhetorical-periwinkle-puck.glitch.me/admin";
+export const service_URL =
+  "https://rhetorical-periwinkle-puck.glitch.me/services";

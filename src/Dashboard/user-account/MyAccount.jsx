@@ -20,10 +20,6 @@ const MyAccount = () => {
     error,
   } = useGetProfile(`${BASE_URL}/users/${userId}`);
 
-  // const handleLogout = () => {
-  //   dispatch({ type: "LOGOUT" });
-  // };
-
   const handleDeleteAccount = async () => {
     Swal.fire({
       title: "Are you sure?",
@@ -100,12 +96,6 @@ const MyAccount = () => {
                 </p>
               </div>
               <div className="mt-[50px] md:mt-[100px]">
-                {/* <button
-                  onClick={handleLogout}
-                  className="w-full btn text-[16px] leading-7 rounded-md bg-[#181A1E] p-3 text-white"
-                >
-                  Logout
-                </button> */}
                 <button
                   onClick={handleDeleteAccount}
                   disabled={loading}
