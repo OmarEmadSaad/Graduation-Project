@@ -10,9 +10,6 @@ const App = () => {
     const token = localStorage.getItem("token");
     const userId = localStorage.getItem("userId");
 
-    // تصحيح: طباعة القيم عشان نتأكد إنها موجودة
-    console.log("Role:", role, "Token:", token, "UserId:", userId);
-
     const shouldShow =
       role &&
       token &&
@@ -23,8 +20,8 @@ const App = () => {
 
     setIsDriftVisible(shouldShow);
 
-    // تحميل Drift حتى لو shouldShow بـ false عشان نضمن إن السكربت موجود
-    if (!window.drift) {
+    if (shouldShow && !window.drift) {
+      // Load Drift if not already loaded
       ("use strict");
       !(function () {
         var t = (window.drift = window.drift || []);
@@ -69,18 +66,10 @@ const App = () => {
       })();
       window.drift.SNIPPET_VERSION = "0.3.1";
       window.drift.load("dzuguuxtz63t");
-      console.log("Drift script loaded"); // تصحيح: تأكد إن السكربت تحمّل
     }
 
-    // إضافة إعدادات لتحسين عرض الموبايل
     if (window.drift) {
-      window.drift.config({
-        mobileOptimized: true, // تفعيل تحسين الموبايل
-        enableChatTargeting: true, // السماح باستهداف الشات
-      });
-
       window.drift.on("ready", (api) => {
-        console.log("Drift ready, shouldShow:", shouldShow); // تصحيح
         if (shouldShow) {
           api.widget.show();
         } else {
@@ -94,16 +83,12 @@ const App = () => {
     checkDriftVisibility();
 
     const handleStorageChange = () => {
-      console.log("Storage change detected"); // تصحيح
       checkDriftVisibility();
     };
 
-    // إضافة حدث storage القياسي مع الحدث المخصص
-    window.addEventListener("storage", handleStorageChange);
     window.addEventListener("customStorageChange", handleStorageChange);
 
     return () => {
-      window.removeEventListener("storage", handleStorageChange);
       window.removeEventListener("customStorageChange", handleStorageChange);
     };
   }, []);
