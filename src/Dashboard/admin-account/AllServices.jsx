@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Swal from "sweetalert2";
 import { service_URL, token } from "../../config";
+import Loading from "../../Components/Loader/Loading";
 
 const AllServices = () => {
   const [services, setServices] = useState([]);
@@ -50,7 +51,6 @@ const AllServices = () => {
     fetchServices();
   }, [navigate]);
 
-  // Handle service deletion
   const handleDelete = async (event, id, name) => {
     event.preventDefault();
 
@@ -104,7 +104,7 @@ const AllServices = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="text-xl text-gray-600">Loading...</div>
+        <Loading />
       </div>
     );
   }
@@ -160,7 +160,7 @@ const AllServices = () => {
                     {service.desc?.substring(0, 20) +
                       (service.desc?.length > 20 ? "..." : "")}
                   </td>
-                  <td className="py-2 px-4 border-b text-right">
+                  <td className="py-2 px-4 border-b text-right gap-[2em]">
                     <button
                       onClick={(e) => handleDelete(e, service.id, service.name)}
                       className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded hover:cursor-pointer mx-1"
@@ -173,7 +173,7 @@ const AllServices = () => {
 
                         navigate(`/services/${service.id}`);
                       }}
-                      className="text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded hover:cursor-pointer mx-1"
+                      className="text-white mt-2 bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded hover:cursor-pointer mx-1"
                     >
                       Edit
                     </button>

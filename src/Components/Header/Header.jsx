@@ -146,10 +146,10 @@ function Header() {
                       : "/user/profile/me"
                   }
                 >
-                  <figure className="w-[35px] h-[35px] rounded-full cursor-pointer">
+                  <figure className="w-[50px] h-[80px] cursor-pointer">
                     <img
                       src={userPhoto}
-                      className="w-full rounded-full"
+                      className="w-[100%] h-[7vh] mt-[2em] rounded-full"
                       alt="User Avatar"
                     />
                   </figure>

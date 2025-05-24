@@ -4,6 +4,7 @@ import axios from "axios";
 import Swal from "sweetalert2";
 import { service_URL, token } from "../../config";
 import uploadImageToCloudinary from "../../utils/uploadCloudinary";
+import Loading from "../../Components/Loader/Loading";
 
 const ServiceEdit = () => {
   const { id } = useParams();
@@ -149,7 +150,7 @@ const ServiceEdit = () => {
 
   return loading ? (
     <div className="flex justify-center items-center h-screen">
-      <div className="text-xl text-gray-600">Loading...</div>
+      <Loading />
     </div>
   ) : !formData.name ? (
     <div className="p-6 text-center text-red-500">Service not found.</div>
