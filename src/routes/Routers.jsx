@@ -18,6 +18,7 @@ import DoctorsEdite from "../Dashboard/admin-account/DoctorsEdite";
 import AllServices from "../Dashboard/admin-account/AllServices";
 import ServiceEdit from "../Dashboard/admin-account/ServiceEdit";
 import ServiceAdd from "../Dashboard/admin-account/ServiceAdd";
+import NotFound from "../pages/NotFound";
 
 const Routers = () => {
   return (
@@ -114,6 +115,7 @@ const Routers = () => {
             </ProtectedRoute>
           }
         />
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </div>
   );
