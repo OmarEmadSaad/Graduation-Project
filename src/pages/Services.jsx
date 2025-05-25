@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import ServiceCard from "../Components/Services/ServiceCard";
 import { service_URL } from "../config";
 
@@ -20,7 +20,7 @@ function Services() {
   }, []);
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto px-4 mt-5 mb-5">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-1">
         {services.map((items, index) => (
           <ServiceCard index={index} key={items.id || index} items={items} />
