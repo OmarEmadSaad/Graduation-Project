@@ -27,7 +27,14 @@ const Profile = () => {
     const fetchPatientData = async () => {
       if (!userId || userId === "null" || userId === "") {
         console.warn("userId missing:", { user, userId });
-        toast.error("Please log in to view your profile");
+        toast.error("Please log in to view your profile", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
         return;
       }
 
@@ -45,7 +52,7 @@ const Profile = () => {
         setFormData({
           name: data.name || "",
           email: data.email || "",
-          password: "",
+          password: data.password || "",
           photo: data.photo || null,
           gender: data.gender || "",
           bloodType: data.bloodType || "",
@@ -53,7 +60,14 @@ const Profile = () => {
         setPreviewURL(data.photo || "");
       } catch (error) {
         console.error("Error fetching patient data:", error);
-        toast.error("Failed to load patient data: " + error.message);
+        toast.error("Failed to load patient data: " + error.message, {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
       }
     };
 
@@ -69,7 +83,14 @@ const Profile = () => {
     if (!file) return;
 
     if (!["image/jpeg", "image/png"].includes(file.type)) {
-      toast.error("Please upload a JPG or PNG image");
+      toast.error("Please upload a JPG or PNG image", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       return;
     }
 
@@ -90,10 +111,24 @@ const Profile = () => {
         photo: imageUrl,
       }));
       setPreviewURL(imageUrl);
-      toast.success("Photo uploaded successfully");
+      toast.success("Photo uploaded successfully", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } catch (error) {
       console.error("Error uploading photo:", error);
-      toast.error("Failed to upload photo: " + error.message);
+      toast.error("Failed to upload photo: " + error.message, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       setPreviewURL(formData.photo || "");
       setSelectedFile(null);
     } finally {
@@ -116,16 +151,43 @@ const Profile = () => {
         throw new Error(currentData.message || "Failed to fetch current data");
       }
 
-      const payload = {
-        ...currentData,
-        name: formData.name,
-        email: formData.email,
-        photo: formData.photo,
-        gender: formData.gender,
-        bloodType: formData.bloodType,
-      };
-      if (formData.password) {
-        payload.password = formData.password;
+      const payload = { ...currentData };
+
+      if (formData.name && formData.name.trim() !== currentData.name) {
+        payload.name = formData.name.trim();
+      }
+      if (formData.email && formData.email.trim() !== currentData.email) {
+        payload.email = formData.email.trim();
+      }
+      if (formData.password && formData.password.trim()) {
+        payload.password = formData.password.trim();
+      }
+      if (formData.photo && formData.photo !== currentData.photo) {
+        payload.photo = formData.photo;
+      }
+      if (formData.gender && formData.gender !== currentData.gender) {
+        payload.gender = formData.gender;
+      }
+      if (
+        formData.bloodType &&
+        formData.bloodType.trim() !== currentData.bloodType
+      ) {
+        payload.bloodType = formData.bloodType.trim();
+      }
+
+      if (
+        Object.keys(payload).every((key) => payload[key] === currentData[key])
+      ) {
+        toast.info("No changes made", {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        });
+        setLoading(false);
+        return;
       }
 
       const res = await fetch(`${BASE_URL}/users/${userId}`, {
@@ -137,16 +199,30 @@ const Profile = () => {
         body: JSON.stringify(payload),
       });
 
-      const { message } = await res.json();
+      const data = await res.json();
       if (!res.ok) {
-        throw new Error(message);
+        throw new Error(data.message || "Failed to update profile");
       }
 
-      toast.success(message);
+      toast.success(data.message || "Profile updated successfully", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       navigate("/users/profile/me");
     } catch (error) {
       console.error("Error updating profile:", error);
-      toast.error(error.message);
+      toast.error(error.message || "Failed to update profile", {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
     } finally {
       setLoading(false);
     }
@@ -210,7 +286,6 @@ const Profile = () => {
             placeholder="Blood Type"
             value={formData.bloodType}
             onChange={handleInputChange}
-            required
             className="w-full pr-4 px-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none text-[16px] leading-7
             focus:border-b-primaryColor text-headingColor placeholder:text-textColor rounded-md cursor-pointer"
           />

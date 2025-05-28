@@ -20,23 +20,131 @@ const Signup = () => {
     role: "patient",
     specialization: "",
   });
+  const [errors, setErrors] = useState({
+    name: "",
+    email: "",
+    password: "",
+    gender: "",
+    photo: "",
+    specialization: "",
+  });
+  const [emailExists, setEmailExists] = useState(false);
 
   const navigate = useNavigate();
 
+  const validate = () => {
+    let isValid = true;
+    let newErrors = {
+      name: "",
+      email: "",
+      password: "",
+      gender: "",
+      photo: "",
+      specialization: "",
+    };
+
+    // Name validation: 3-15 characters, letters and numbers only
+    if (!/^[a-zA-Z0-9\s]{3,15}$/.test(formData.name.trim())) {
+      newErrors.name =
+        "Name must be 3-15 characters long and contain only letters, numbers, or spaces.";
+      isValid = false;
+    }
+
+    // Email validation: valid email format
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
+      newErrors.email = "Please enter a valid email address.";
+      isValid = false;
+    }
+
+    // Password validation: at least 8 characters, with uppercase, lowercase, and number
+    if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.password.trim())
+    ) {
+      newErrors.password =
+        "Password must be at least 8 characters long and contain an uppercase letter, a lowercase letter, and a number.";
+      isValid = false;
+    }
+
+    // Gender validation
+    if (!formData.gender) {
+      newErrors.gender = "Please select your gender.";
+      isValid = false;
+    }
+
+    // Photo validation
+    if (!formData.photo) {
+      newErrors.photo = "Please upload a profile photo.";
+      isValid = false;
+    }
+
+    // Specialization validation for doctors
+    if (formData.role === "doctor" && !formData.specialization.trim()) {
+      newErrors.specialization = "Specialization is required for doctors.";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const checkEmailExists = async (email) => {
+    try {
+      const urlToUse =
+        formData.role === "patient"
+          ? User_URL
+          : formData.role === "doctor"
+          ? doctor_URL
+          : admin_URL;
+      const res = await fetch(urlToUse);
+      if (!res.ok) {
+        throw new Error(
+          `Failed to fetch ${formData.role} data: ${res.statusText}`
+        );
+      }
+      const data = await res.json();
+      const foundUser = data.find(
+        (u) => u.email.toLowerCase() === email.toLowerCase()
+      );
+      setEmailExists(!!foundUser);
+      return !!foundUser;
+    } catch (error) {
+      console.error("Error checking email:", error);
+      toast.error("Error checking email availability. Please try again.");
+      return false;
+    }
+  };
+
   const handleInputChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+
+    // Check email existence on email input change
+    if (name === "email" && value.trim()) {
+      checkEmailExists(value);
+    }
+
+    // Clear error for the field being edited
+    setErrors({ ...errors, [name]: "" });
   };
 
   const handleFileInputChange = async (event) => {
     const file = event.target.files[0];
     if (!file) return;
 
+    if (!["image/jpeg", "image/png"].includes(file.type)) {
+      toast.error("Please upload a JPG or PNG image");
+      return;
+    }
+
     try {
       const imageUrl = await uploadImageToCloudinary(file);
       setPreviewURL(imageUrl);
       setSelectedFile(imageUrl);
       setFormData({ ...formData, photo: imageUrl });
+      setErrors({ ...errors, photo: "" });
+      toast.success("Photo uploaded successfully");
     } catch (error) {
+      console.error("Error uploading image:", error);
       toast.error("Failed to upload image. Please try again.");
     }
   };
@@ -45,40 +153,23 @@ const Signup = () => {
     event.preventDefault();
     setLoading(true);
 
-    if (!formData.name.trim()) {
-      toast.error("Full name is required");
+    // Validate form data
+    if (!validate()) {
       setLoading(false);
+      toast.error("Please fix the errors in the form.");
       return;
     }
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!formData.email.trim() || !emailRegex.test(formData.email)) {
-      toast.error("Please enter a valid email address");
+    // Final email existence check
+    const isEmailTaken = await checkEmailExists(formData.email.trim());
+    if (isEmailTaken) {
+      setErrors((prev) => ({
+        ...prev,
+        email: "This email is already registered.",
+      }));
+      setEmailExists(true);
       setLoading(false);
-      return;
-    }
-
-    if (formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters long");
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.gender) {
-      toast.error("Please select your gender");
-      setLoading(false);
-      return;
-    }
-
-    if (!formData.photo) {
-      toast.error("Please upload a profile photo");
-      setLoading(false);
-      return;
-    }
-
-    if (formData.role === "doctor" && !formData.specialization.trim()) {
-      toast.error("Specialization is required for doctors");
-      setLoading(false);
+      toast.error("Email is already registered. Please use a different email.");
       return;
     }
 
@@ -107,6 +198,7 @@ const Signup = () => {
         throw new Error("Invalid role");
       }
 
+      // Send POST request to register user
       const res = await fetch(urlToUse, {
         method: "POST",
         headers: {
@@ -121,17 +213,44 @@ const Signup = () => {
         throw new Error(data.message || `Failed to register ${formData.role}.`);
       }
 
+      // Save user data to localStorage
       localStorage.setItem("userId", data.id);
       localStorage.setItem("role", formData.role);
 
+      // Update photo in database
       await updateUserPhotoInDB(data.id, formData.photo, formData.role);
 
       setLoading(false);
-      toast.success(`${formData.role} registered successfully!`);
+      toast.success(
+        `${
+          formData.role.charAt(0).toUpperCase() + formData.role.slice(1)
+        } registered successfully!`,
+        {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        }
+      );
       navigate("/login");
     } catch (error) {
       console.error("Signup error:", error);
-      toast.error(error.message || "Something went wrong.");
+      let errorMessage = "Something went wrong. Please try again.";
+      if (error.message.includes("email")) {
+        errorMessage = "This email is already registered.";
+        setErrors((prev) => ({ ...prev, email: errorMessage }));
+        setEmailExists(true);
+      }
+      toast.error(errorMessage, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      });
       setLoading(false);
     }
   };
@@ -163,9 +282,11 @@ const Signup = () => {
                   placeholder="Full Name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  required
                   className="w-full px-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none text-[16px] leading-7 focus:border-b-primaryColor text-headingColor placeholder:text-textColor rounded-md"
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                )}
               </div>
 
               <div className="mb-5 mt-4">
@@ -175,9 +296,16 @@ const Signup = () => {
                   placeholder="Enter your Email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  required
                   className="w-full px-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none text-[16px] leading-7 focus:border-b-primaryColor text-headingColor placeholder:text-textColor rounded-md"
                 />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
+                {emailExists && (
+                  <p className="text-red-500 text-sm mt-1">
+                    This email is already registered.
+                  </p>
+                )}
               </div>
 
               <div className="mb-5 mt-4">
@@ -187,9 +315,11 @@ const Signup = () => {
                   placeholder="Password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  required
                   className="w-full px-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none text-[16px] leading-7 focus:border-b-primaryColor text-headingColor placeholder:text-textColor rounded-md"
                 />
+                {errors.password && (
+                  <p className="text-red-500 text-sm mt-1">{errors.password}</p>
+                )}
               </div>
 
               <div className="mb-5 flex justify-between">
@@ -220,6 +350,9 @@ const Signup = () => {
                   </select>
                 </label>
               </div>
+              {errors.gender && (
+                <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+              )}
 
               {formData.role === "doctor" && (
                 <div className="mb-5">
@@ -229,9 +362,13 @@ const Signup = () => {
                     placeholder="Enter your specialization"
                     value={formData.specialization}
                     onChange={handleInputChange}
-                    required
                     className="w-full px-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none text-[16px] leading-7 focus:border-b-primaryColor text-headingColor placeholder:text-textColor rounded-md"
                   />
+                  {errors.specialization && (
+                    <p className="text-red-500 text-sm mt-1">
+                      {errors.specialization}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -263,6 +400,9 @@ const Signup = () => {
                   </label>
                 </div>
               </div>
+              {errors.photo && (
+                <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
+              )}
 
               <div className="mt-7">
                 <button

@@ -1,4 +1,4 @@
-export const BASE_URL = "http://localhost:3000";
+export const BASE_URL = "https://rhetorical-periwinkle-puck.glitch.me/";
 export const User_URL = `${BASE_URL}/users`;
 export const Doctor_URL = `${BASE_URL}/doctors`;
 export const Admin_URL = `${BASE_URL}/admin`;
@@ -60,7 +60,6 @@ const updateUserPhotoInDB = async (userId, imageUrl, userType) => {
     }
 
     const updatedUser = await res.json();
-    console.log(`${userType} photo updated:`, updatedUser);
     return updatedUser;
   } catch (error) {
     console.error(`Error updating ${userType} photo:`, error.message);
