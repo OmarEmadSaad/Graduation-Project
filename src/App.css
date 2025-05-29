@@ -78,3 +78,27 @@ body {
     display: block;
   }
 }
+
+#drift-frame-controller,
+#drift-frame-chat {
+  width: auto !important;
+  height: auto !important;
+  max-width: 400px !important;
+  max-height: 600px !important;
+  position: fixed !important;
+  inset-inline-end: 20px !important;
+  bottom: 20px !important;
+  z-index: 9999 !important;
+}
+
+html[dir="rtl"] #drift-frame-controller,
+html[dir="rtl"] #drift-frame-chat {
+  right: auto !important;
+  left: 20px !important;
+}
+
+html[dir="ltr"] #drift-frame-controller,
+html[dir="ltr"] #drift-frame-chat {
+  right: 20px !important;
+  left: auto !important;
+}

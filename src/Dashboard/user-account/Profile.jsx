@@ -312,7 +312,7 @@ const Profile = () => {
             <figure className="w-[60px] h-[60px] rounded-full border-2 border-primaryColor flex items-center justify-center">
               <img
                 src={previewURL}
-                className="rounded-full w-full"
+                className="rounded-full w-[150%] h-[100%]"
                 alt="Avatar"
               />
             </figure>
