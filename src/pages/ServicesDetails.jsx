@@ -1,14 +1,17 @@
 import { useEffect, useState } from "react";
-import { useLocation, Link } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { BASE_URL, token } from "../config";
 import Loading from "../Components/Loader/Loading";
 import Error from "../Components/Error/Error";
+import { toast, ToastContainer } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ServicesDetails = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   const queryParams = new URLSearchParams(location.search);
   const serviceName = queryParams.get("service");
@@ -51,6 +54,28 @@ const ServicesDetails = () => {
     fetchDoctors();
   }, [serviceName]);
 
+  const handleBooking = (doctorId) => {
+    try {
+      const role = localStorage.getItem("role");
+
+      if (!role) {
+        toast.error("No user role found. Please sign in as a patient.");
+        return;
+      }
+
+      if (role !== "patient") {
+        toast.error("Sorry, booking is only available for patients.");
+        toast.warn("Please sign up as a patient.");
+        return;
+      }
+
+      navigate(`/doctors/${doctorId}`);
+    } catch (error) {
+      console.error("Navigation error:", error);
+      toast.error("An error occurred while navigating to the booking page.");
+    }
+  };
+
   return (
     <div className="container mx-auto py-10">
       <h2 className="text-[28px] font-bold text-headingColor text-center mb-8">
@@ -80,9 +105,12 @@ const ServicesDetails = () => {
                   </h2>
                   <p className="text-textColor">{doctor.specialization}</p>
                   <div className="card-actions">
-                    <Link to={`/doctors/${doctor.id}`}>
-                      <button className="btn btn-primary">Book Now</button>
-                    </Link>
+                    <button
+                      className="btn btn-primary"
+                      onClick={() => handleBooking(doctor.id)}
+                    >
+                      Book Now
+                    </button>
                   </div>
                 </div>
               </div>
@@ -94,6 +122,7 @@ const ServicesDetails = () => {
           )}
         </div>
       )}
+      <ToastContainer position="top-right" autoClose={3000} />
     </div>
   );
 };

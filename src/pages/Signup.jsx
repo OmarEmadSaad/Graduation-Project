@@ -7,6 +7,9 @@ import { User_URL, doctor_URL, admin_URL } from "../config";
 import { toast } from "react-toastify";
 import HashLoader from "react-spinners/HashLoader";
 
+const DEFAULT_PHOTO_URL =
+  "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS4Avj4TSMtuTPrA1IqGtlWogrd6D3aZhVwCA98c3NC442QLQU0rmqWv7M&s";
+
 const Signup = () => {
   const [selectedFile, setSelectedFile] = useState(null);
   const [previewURL, setPreviewURL] = useState("");
@@ -15,7 +18,7 @@ const Signup = () => {
     name: "",
     email: "",
     password: "",
-    photo: "",
+    photo: DEFAULT_PHOTO_URL, // Set default photo URL
     gender: "",
     role: "patient",
     specialization: "",
@@ -31,6 +34,7 @@ const Signup = () => {
   const [emailExists, setEmailExists] = useState(false);
 
   const navigate = useNavigate();
+  const isAdmin = localStorage.getItem("role") === "admin";
 
   const validate = () => {
     let isValid = true;
@@ -43,20 +47,17 @@ const Signup = () => {
       specialization: "",
     };
 
-    // Name validation: 3-15 characters, letters and numbers only
     if (!/^[a-zA-Z0-9\s]{3,15}$/.test(formData.name.trim())) {
       newErrors.name =
         "Name must be 3-15 characters long and contain only letters, numbers, or spaces.";
       isValid = false;
     }
 
-    // Email validation: valid email format
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
       newErrors.email = "Please enter a valid email address.";
       isValid = false;
     }
 
-    // Password validation: at least 8 characters, with uppercase, lowercase, and number
     if (
       !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).{8,}$/.test(formData.password.trim())
     ) {
@@ -65,19 +66,11 @@ const Signup = () => {
       isValid = false;
     }
 
-    // Gender validation
     if (!formData.gender) {
       newErrors.gender = "Please select your gender.";
       isValid = false;
     }
 
-    // Photo validation
-    if (!formData.photo) {
-      newErrors.photo = "Please upload a profile photo.";
-      isValid = false;
-    }
-
-    // Specialization validation for doctors
     if (formData.role === "doctor" && !formData.specialization.trim()) {
       newErrors.specialization = "Specialization is required for doctors.";
       isValid = false;
@@ -118,18 +111,21 @@ const Signup = () => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
 
-    // Check email existence on email input change
     if (name === "email" && value.trim()) {
       checkEmailExists(value);
     }
 
-    // Clear error for the field being edited
     setErrors({ ...errors, [name]: "" });
   };
 
   const handleFileInputChange = async (event) => {
     const file = event.target.files[0];
-    if (!file) return;
+    if (!file) {
+      setFormData({ ...formData, photo: DEFAULT_PHOTO_URL });
+      setPreviewURL(DEFAULT_PHOTO_URL);
+      setSelectedFile(null);
+      return;
+    }
 
     if (!["image/jpeg", "image/png"].includes(file.type)) {
       toast.error("Please upload a JPG or PNG image");
@@ -146,6 +142,9 @@ const Signup = () => {
     } catch (error) {
       console.error("Error uploading image:", error);
       toast.error("Failed to upload image. Please try again.");
+      setFormData({ ...formData, photo: DEFAULT_PHOTO_URL });
+      setPreviewURL(DEFAULT_PHOTO_URL);
+      setSelectedFile(null);
     }
   };
 
@@ -153,14 +152,12 @@ const Signup = () => {
     event.preventDefault();
     setLoading(true);
 
-    // Validate form data
     if (!validate()) {
       setLoading(false);
       toast.error("Please fix the errors in the form.");
       return;
     }
 
-    // Final email existence check
     const isEmailTaken = await checkEmailExists(formData.email.trim());
     if (isEmailTaken) {
       setErrors((prev) => ({
@@ -179,7 +176,7 @@ const Signup = () => {
         name: formData.name.trim(),
         email: formData.email.trim(),
         password: formData.password.trim(),
-        photo: formData.photo,
+        photo: formData.photo || DEFAULT_PHOTO_URL,
         gender: formData.gender,
       };
 
@@ -198,7 +195,6 @@ const Signup = () => {
         throw new Error("Invalid role");
       }
 
-      // Send POST request to register user
       const res = await fetch(urlToUse, {
         method: "POST",
         headers: {
@@ -213,12 +209,14 @@ const Signup = () => {
         throw new Error(data.message || `Failed to register ${formData.role}.`);
       }
 
-      // Save user data to localStorage
       localStorage.setItem("userId", data.id);
       localStorage.setItem("role", formData.role);
 
-      // Update photo in database
-      await updateUserPhotoInDB(data.id, formData.photo, formData.role);
+      await updateUserPhotoInDB(
+        data.id,
+        formData.photo || DEFAULT_PHOTO_URL,
+        formData.role
+      );
 
       setLoading(false);
       toast.success(
@@ -331,8 +329,8 @@ const Signup = () => {
                     onChange={handleInputChange}
                     className="text-headingColor text-[15px] font-semibold leading-7 px-4 py-3 focus:outline-none"
                   >
-                    <option value="patient">Patient</option>
-                    <option value="doctor">Doctor</option>
+                    {!isAdmin && <option value="patient">Patient</option>}
+                    {isAdmin && <option value="doctor">Doctor</option>}
                   </select>
                 </label>
 
@@ -373,7 +371,7 @@ const Signup = () => {
               )}
 
               <div className="mb-5 gap-3 flex items-center">
-                {selectedFile && previewURL && (
+                {previewURL && (
                   <figure className="w-[60px] h-[60px] rounded-full border-2 border-primaryColor flex items-center justify-center">
                     <img
                       src={previewURL}
@@ -400,9 +398,6 @@ const Signup = () => {
                   </label>
                 </div>
               </div>
-              {errors.photo && (
-                <p className="text-red-500 text-sm mt-1">{errors.photo}</p>
-              )}
 
               <div className="mt-7">
                 <button

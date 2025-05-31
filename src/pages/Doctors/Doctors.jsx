@@ -204,7 +204,7 @@ const Doctors = () => {
                           <button
                             className="btn btn-primary"
                             onClick={() => handleBooking(doctor.id)}
-                            onTouchEnd={() => handleBooking(doctor.id)} // دعم أحداث اللمس
+                            onTouchEnd={() => handleBooking(doctor.id)}
                           >
                             Book Now
                           </button>

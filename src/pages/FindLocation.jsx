@@ -8,7 +8,6 @@ const FindLocation = () => {
   return (
     <section className="bg-[#fff9ea] py-10">
       <div className="container mx-auto px-4">
-        {/* العنوان */}
         <div className="text-center mb-8">
           <h2 className="heading text-[28px] font-bold text-headingColor">
             Our Hospital Location

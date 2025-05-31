@@ -7,33 +7,30 @@ const Footer = () => {
       <footer className="footer sm:footer-horizontal bg-base-300 text-base-content p-10">
         <nav>
           <h6 className="footer-title">Quick Link</h6>
-          <Link className="link link-hover" to={"./home"}>
+          <Link className="link link-hover" to={"/home"}>
             Home
           </Link>
-          <Link className="link link-hover" to={"./Services"}>
+          <Link className="link link-hover" to={"/Services"}>
             Services
           </Link>
-          <Link className="link link-hover" to={"./home/doctors"}>
+          <Link className="link link-hover" to={"find-location"}>
             Find Location
           </Link>
         </nav>
         <nav>
           <h6 className="footer-title">I Want To</h6>
-          <Link className="link link-hover" to={"./doctors"}>
+          <Link className="link link-hover" to={"/doctors"}>
             Find A Doctor
           </Link>
-          <Link className="link link-hover" to={"./contact"}>
+          <Link className="link link-hover" to={"/contcat"}>
             Contact
-          </Link>
-          <Link className="link link-hover" to={"./home/doctors"}>
-            Request the Appointment
           </Link>
         </nav>
         <nav>
           <Link to="/">
             <img src={logo} className="w-full rounded-full" />
           </Link>
-          {/* <h6>Design by Omar Emad</h6> */}
+          {/* <h6>Created and Design by Omar Emad</h6> */}
           <h6>
             Outpatient Management System
             <br /> Cairo 2025

@@ -13,7 +13,7 @@ const ServiceCard = ({ items }) => {
         <img
           src={
             image ||
-            "https://static.vecteezy.com/system/resources/thumbnails/009/292/244/small/default-avatar-icon-of-social-media-user-vector.jpg"
+            "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRLEoaTsWQuPn6bW-_n6hqZvmy5Lh64qwETLg&s"
           }
           alt={name}
           className="w-24 h-24 rounded-full object-cover border-2 border-white"

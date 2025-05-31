@@ -11,7 +11,7 @@ const navLinks = [
   { path: "/home", display: "Home" },
   { path: "/doctors", display: "Find a Doctor" },
   { path: "/services", display: "Services" },
-  { path: "/contcat", display: "Contcat" },
+  { path: "/Contcat", display: "Contcat" },
 ];
 
 function Header() {
@@ -24,61 +24,72 @@ function Header() {
   const isLoggedIn =
     localStorage.getItem("token") && localStorage.getItem("role");
 
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const storedUserId = localStorage.getItem("userId");
-      const isLoggedIn =
-        localStorage.getItem("token") && localStorage.getItem("role");
+  const fetchUserData = async () => {
+    const storedUserId = localStorage.getItem("userId");
+    const role = localStorage.getItem("role");
 
-      if (
-        !isLoggedIn ||
-        !storedUserId ||
-        storedUserId == "null" ||
-        storedUserId == ""
-      ) {
+    if (
+      !isLoggedIn ||
+      !storedUserId ||
+      storedUserId === "null" ||
+      storedUserId === ""
+    ) {
+      setFetchedUser(null);
+      return;
+    }
+
+    let endpoint;
+    if (role === "doctor") {
+      endpoint = `${doctor_URL}/${storedUserId}`;
+    } else if (role === "admin") {
+      endpoint = `${admin_URL}/${storedUserId}`;
+    } else {
+      endpoint = `${User_URL}/${storedUserId}`;
+    }
+
+    try {
+      const res = await fetch(endpoint);
+      if (!res.ok) {
         setFetchedUser(null);
         return;
       }
+      const data = await res.json();
+      setFetchedUser(data);
+    } catch (err) {
+      setFetchedUser(null);
+      console.error("Error fetching user data:", err);
+    }
+  };
 
-      const role = localStorage.getItem("role");
-      let endpoint;
+  useEffect(() => {
+    fetchUserData();
 
-      if (role === "doctor") {
-        endpoint = `${doctor_URL}/${storedUserId}`;
-      } else if (role === "admin") {
-        endpoint = `${admin_URL}/${storedUserId}`;
+    const handleStorageChange = () => {
+      fetchUserData();
+    };
+
+    window.addEventListener("customStorageChange", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("customStorageChange", handleStorageChange);
+    };
+  }, [userId, localStorage.getItem("role")]);
+
+  useEffect(() => {
+    const handleStickyHeader = () => {
+      if (
+        document.body.scrollTop > 80 ||
+        document.documentElement.scrollTop > 80
+      ) {
+        headerRef.current.classList.add("sticky__header");
       } else {
-        endpoint = `${User_URL}/${storedUserId}`;
-      }
-
-      try {
-        const res = await fetch(endpoint);
-
-        if (!res.ok) {
-          setFetchedUser(null);
-          return;
-        }
-
-        const data = await res.json();
-        setFetchedUser(data);
-      } catch (err) {
-        setFetchedUser(null);
+        headerRef.current.classList.remove("sticky__header");
       }
     };
 
-    fetchUserData();
-  }, [isLoggedIn]);
-
-  const handleStickyHeader = () => {
-    if (
-      document.body.scrollTop > 80 ||
-      document.documentElement.scrollTop > 80
-    ) {
-      headerRef.current.classList.add("sticky__header");
-    } else {
-      headerRef.current.classList.remove("sticky__header");
-    }
-  };
+    window.addEventListener("scroll", handleStickyHeader);
+    return () => window.removeEventListener("scroll", handleStickyHeader);
+  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -89,14 +100,14 @@ function Header() {
     dispatch({ type: "LOGOUT" });
 
     toast.success("Logged out successfully!");
+    setFetchedUser(null);
     navigate("/login");
     window.dispatchEvent(new Event("customStorageChange"));
   };
 
-  useEffect(() => {
-    window.addEventListener("scroll", handleStickyHeader);
-    return () => window.removeEventListener("scroll", handleStickyHeader);
-  }, []);
+  const handleAddDoctor = () => {
+    navigate("/register"); // Adjust the route as needed
+  };
 
   const toggleMenu = () => menuRef.current.classList.toggle("show__menu");
 
@@ -116,7 +127,7 @@ function Header() {
           </div>
 
           <div className="navigation" ref={menuRef} onClick={toggleMenu}>
-            <ul className="menu flex items-center gap-[2.7rem] flex-row">
+            <ul className="menu flex items-center gap-[2.7rem] flex-col md:flex-row">
               {navLinks.map((link, index) => (
                 <li key={index}>
                   <NavLink
@@ -131,6 +142,16 @@ function Header() {
                   </NavLink>
                 </li>
               ))}
+              {isLoggedIn && localStorage.getItem("role") === "admin" && (
+                <li className="md:hidden">
+                  <button
+                    onClick={handleAddDoctor} // Updated to use handleAddDoctor
+                    className="bg-green-600 py-2 px-4 text-white font-[600] h-[44px] flex items-center justify-center rounded-[50px] cursor-pointer w-full"
+                  >
+                    Add Doctor
+                  </button>
+                </li>
+              )}
             </ul>
           </div>
 
@@ -154,6 +175,14 @@ function Header() {
                     />
                   </figure>
                 </Link>
+                {localStorage.getItem("role") === "admin" && (
+                  <button
+                    onClick={handleAddDoctor}
+                    className="hidden md:flex bg-green-600 py-2 px-4 text-white font-[600] h-[44px] items-center justify-center rounded-[50px] cursor-pointer"
+                  >
+                    Add Doctor
+                  </button>
+                )}
                 <button
                   onClick={handleLogout}
                   className="bg-red-600 py-2 px-4 text-white font-[600] h-[44px] flex items-center justify-center rounded-[50px] cursor-pointer"

@@ -85,7 +85,6 @@ const Patients = () => {
     if (!result.isConfirmed) return;
 
     try {
-      // Delete user from /users
       const deleteUserRes = await fetch(`${BASE_URL}/users/${user.id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${authToken}` },
