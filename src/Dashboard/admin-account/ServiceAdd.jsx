@@ -138,11 +138,8 @@ const ServiceAdd = () => {
           </label>
           <div className="flex items-center space-x-4">
             <img
-              src={
-                newImage ||
-                "https://www.shutterstock.com/image-vector/image-icon-trendy-flat-style-260nw-643080895.jpgs"
-              }
-              alt=""
+              src={newImage || "https://webemps.com/images/default-image.jpg"}
+              alt="Erro"
               className="w-16 h-16 rounded-full object-cover"
             />
             <div className="relative h-[50px] w-[130px]">

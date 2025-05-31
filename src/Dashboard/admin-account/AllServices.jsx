@@ -148,7 +148,10 @@ const AllServices = () => {
                   </td>
                   <td className="py-2 px-4 border-b">
                     <img
-                      src={service.image}
+                      src={
+                        service.image ||
+                        "https://webemps.com/images/default-image.jpg"
+                      }
                       alt={service.name}
                       className="w-12 h-12 rounded-full object-cover mx-auto"
                     />
