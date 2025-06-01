@@ -79,9 +79,10 @@ const Doctors = () => {
   useEffect(() => {
     if (doctors && doctors.length > 0 && reviews) {
       const trimmedQuery = query.trim().toLowerCase();
-      let filtered;
+      const userId = localStorage.getItem("userId");
+      const role = localStorage.getItem("role");
 
-      const enhancedDoctors = doctors.map((doctor) => {
+      let enhancedDoctors = doctors.map((doctor) => {
         const avgRating = calculateAvgRating(doctor.id, reviews);
         const totalRating = reviews.filter(
           (review) => review.doctorId === doctor.id
@@ -93,6 +94,13 @@ const Doctors = () => {
         };
       });
 
+      if (role === "doctor" && userId) {
+        enhancedDoctors = enhancedDoctors.filter(
+          (doctor) => doctor.id !== userId
+        );
+      }
+
+      let filtered;
       if (trimmedQuery) {
         filtered = enhancedDoctors.filter((doctor) =>
           doctor.specialization.toLowerCase().includes(trimmedQuery)

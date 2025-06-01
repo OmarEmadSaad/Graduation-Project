@@ -9,7 +9,7 @@ import "react-toastify/dist/ReactToastify.css";
 const ServicesDetails = () => {
   const [doctors, setDoctors] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
+  const [error, setoccasionedError] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -37,10 +37,19 @@ const ServicesDetails = () => {
 
         const doctorsData = await res.json();
 
-        const filteredDoctors = doctorsData.filter(
+        const userId = localStorage.getItem("userId");
+        const role = localStorage.getItem("role");
+
+        let filteredDoctors = doctorsData.filter(
           (doctor) =>
             doctor.specialization.toLowerCase() === serviceName.toLowerCase()
         );
+
+        if (role === "doctor" && userId) {
+          filteredDoctors = filteredDoctors.filter(
+            (doctor) => doctor.id !== userId
+          );
+        }
 
         setDoctors(filteredDoctors);
       } catch (err) {
