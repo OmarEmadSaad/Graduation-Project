@@ -20,6 +20,7 @@ const Profile = () => {
     photo: null,
     gender: "",
     bloodType: "",
+    phoneNumber: "", // Added phone number field
   });
   const navigate = useNavigate();
 
@@ -56,6 +57,7 @@ const Profile = () => {
           photo: data.photo || null,
           gender: data.gender || "",
           bloodType: data.bloodType || "",
+          phoneNumber: data.phoneNumber || "", // Added phone number
         });
         setPreviewURL(data.photo || "");
       } catch (error) {
@@ -174,11 +176,20 @@ const Profile = () => {
       ) {
         payload.bloodType = formData.bloodType.trim();
       }
-
       if (
-        Object.keys(payload).every((key) => payload[key] === currentData[key])
+        formData.phoneNumber &&
+        formData.phoneNumber.trim() !== currentData.phoneNumber
       ) {
-        toast.info("No changes made", {
+        payload.phoneNumber = formData.phoneNumber.trim();
+      }
+
+      // Check if there are any changes
+      const hasChanges = !Object.keys(payload).every(
+        (key) => payload[key] === currentData[key]
+      );
+
+      if (!hasChanges) {
+        toast.info("No changes detected in your profile", {
           position: "top-right",
           autoClose: 3000,
           hideProgressBar: false,
@@ -204,7 +215,7 @@ const Profile = () => {
         throw new Error(data.message || "Failed to update profile");
       }
 
-      toast.success(data.message || "Profile updated successfully", {
+      toast.success("Profile updated successfully!", {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -227,7 +238,6 @@ const Profile = () => {
       setLoading(false);
     }
   };
-
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
   };
@@ -277,6 +287,18 @@ const Profile = () => {
           >
             {showPassword ? <AiOutlineEyeInvisible /> : <AiOutlineEye />}
           </button>
+        </div>
+
+        <div className="mb-5">
+          <input
+            name="phoneNumber"
+            type="tel"
+            placeholder="Phone Number"
+            value={formData.phoneNumber}
+            onChange={handleInputChange}
+            className="w-full pr-4 px-4 py-3 border-b border-solid border-[#0066ff61] focus:outline-none text-[16px] leading-7
+            focus:border-b-primaryColor text-headingColor placeholder:text-textColor rounded-md cursor-pointer"
+          />
         </div>
 
         <div className="mb-5">
